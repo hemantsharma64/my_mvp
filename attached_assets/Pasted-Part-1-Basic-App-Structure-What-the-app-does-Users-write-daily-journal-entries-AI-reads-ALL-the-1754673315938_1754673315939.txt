@@ -1,0 +1,244 @@
+Part 1: Basic App Structure
+What the app does:
+Users write daily journal entries
+AI reads ALL their journal entries (gives recent entries more importance)
+AI creates tasks for tomorrow at 12:00 AM every day
+Users can set goals (1 month, 3 months, 6 months, 1 year)
+Dashboard shows today's tasks and progress
+Main Screens:
+Dashboard - Shows today's tasks, quote, goals progress
+Journal Entry - Write today's thoughts
+Goals - Set and manage personal goals
+Task List - Complete daily tasks
+History - View past journals and progress
+Part 2: Database Structure (Simple)
+JavaScript
+// User Collection
+users: {
+  userId: {
+    email: "user@email.com",
+    createdAt: "timestamp",
+    totalJournalEntries: 0
+  }
+}
+
+// Journal Collection
+journals: {
+  journalId: {
+    userId: "user123",
+    date: "2025-08-06",
+    content: "Today I felt happy because...",
+    wordCount: 150,
+    createdAt: "timestamp"
+  }
+}
+
+// Goals Collection
+goals: {
+  goalId: {
+    userId: "user123",
+    title: "Learn Python",
+    description: "Want to become good at programming",
+    duration: "6months", // 1month, 3months, 6months, 1year
+    category: "learning",
+    progress: 25, // percentage
+    status: "active",
+    createdAt: "timestamp"
+  }
+}
+
+// Tasks Collection
+tasks: {
+  taskId: {
+    userId: "user123",
+    date: "2025-08-07",
+    title: "Read 10 pages of Python book",
+    description: "Continue learning Python basics",
+    category: "learning",
+    relatedGoalId: "goalId123",
+    completed: false,
+    timeEstimate: "20 minutes",
+    generatedAt: "2025-08-06 00:00:00"
+  }
+}
+Part 3: AI Processing Logic
+Step 1: Get User Data
+JavaScript
+function getUserData(userId) {
+  const allJournals = getAllJournalsForUser(userId);
+  const userGoals = getActiveGoalsForUser(userId);
+  
+  // Sort journals by date (newest first)
+  const recentJournals = getLastNDaysJournals(allJournals, 7); // Last 7 days
+  const mediumJournals = getJournalsFromDays(allJournals, 8, 30); // 8-30 days ago
+  const oldJournals = getJournalsOlderThan(allJournals, 30); // 30+ days ago
+  
+  return {
+    recentJournals: recentJournals,
+    mediumJournals: mediumJournals, 
+    oldJournals: oldJournals,
+    goals: userGoals
+  };
+}
+Step 2: Create AI Prompt
+JavaScript
+function createTaskGenerationPrompt(userData) {
+  const prompt = `
+You are a life coach. Create 5-7 tasks for tomorrow based on this information:
+
+RECENT JOURNALS (Most Important - Last 7 days):
+${userData.recentJournals.map(j => `Date: ${j.date}\nContent: ${j.content}`).join('\n\n')}
+
+USER GOALS:
+${userData.goals.map(g => `Goal: ${g.title}\nDuration: ${g.duration}\nProgress: ${g.progress}%`).join('\n\n')}
+
+MEDIUM TERM JOURNALS (8-30 days ago):
+${userData.mediumJournals.slice(0, 3).map(j => `${j.date}: ${j.content.substring(0, 100)}...`).join('\n')}
+
+Rules:
+1. Create 5-7 specific tasks for tomorrow
+2. Focus mostly on recent journals (last 7 days) and user goals
+3. Each task should take 10-45 minutes
+4. Include tasks that help achieve the user's goals
+5. Make tasks actionable and specific
+
+Return JSON format:
+{
+  "tasks": [
+    {
+      "title": "Task title",
+      "description": "What exactly to do",
+      "category": "health|learning|productivity|wellness",
+      "timeEstimate": "20 minutes",
+      "relatedGoalId": "goalId if related to a goal",
+      "priority": "high|medium|low"
+    }
+  ],
+  "dailyQuote": "Motivational quote for tomorrow",
+  "focusArea": "Main area to focus on tomorrow"
+}
+`;
+  
+  return prompt;
+}
+Step 3: Generate Tasks at Midnight
+JavaScript
+async function generateTasksForAllUsers() {
+  console.log("Starting midnight task generation...");
+  
+  const allUsers = await getAllActiveUsers();
+  
+  for (let user of allUsers) {
+    try {
+      // Get user's data
+      const userData = getUserData(user.id);
+      
+      // Create AI prompt
+      const prompt = createTaskGenerationPrompt(userData);
+      
+      // Call AI API (OpenRouter)
+      const aiResponse = await callOpenRouterAPI(prompt);
+      const taskData = JSON.parse(aiResponse);
+      
+      // Save tasks for tomorrow
+      const tomorrow = getTomorrowDate();
+      await saveTasksForUser(user.id, tomorrow, taskData.tasks);
+      
+      // Save dashboard content
+      await saveDashboardContent(user.id, tomorrow, {
+        quote: taskData.dailyQuote,
+        focusArea: taskData.focusArea
+      });
+      
+      console.log(`Tasks generated for user ${user.id}`);
+      
+    } catch (error) {
+      console.error(`Failed for user ${user.id}:`, error);
+    }
+  }
+  
+  console.log("Midnight task generation complete!");
+}
+
+// Run at midnight every day
+setInterval(generateTasksForAllUsers, 24 * 60 * 60 * 1000); // Every 24 hours
+Part 4: Dashboard Logic
+Dashboard Content
+JavaScript
+function getDashboardData(userId) {
+  const today = getTodayDate();
+  
+  return {
+    // Today's tasks
+    tasks: getTasksForDate(userId, today),
+    
+    // Daily quote
+    quote: getDailyQuote(userId, today),
+    
+    // Goal progress
+    goals: getUserGoals(userId).map(goal => ({
+      title: goal.title,
+      progress: goal.progress,
+      nextMilestone: calculateNextMilestone(goal)
+    })),
+    
+    // Journal status
+    journalWrittenToday: hasJournalForDate(userId, today),
+    
+    // Streaks
+    journalStreak: calculateJournalStreak(userId),
+    taskStreak: calculateTaskStreak(userId)
+  };
+}
+Dashboard UI Rules
+JavaScript
+// Show journal bubble only if user hasn't written today's journal
+if (!journalWrittenToday) {
+  showJournalReminder = true;
+  journalButtonText = "Add Today's Journal";
+} else {
+  showJournalReminder = false;
+}
+Part 5: API Integration (OpenRouter)
+Simple API Call
+JavaScript
+async function callOpenRouterAPI(prompt) {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 1000
+    })
+  });
+  
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+Part 6: Key Features Summary
+What happens each day:
+User writes journal → Stored in database with all previous journals
+12:00 AM arrives → AI automatically processes ALL journals + goals
+AI creates tomorrow's tasks → Mix of journal-based + goal-based tasks
+User wakes up → Dashboard shows new tasks, quote, and progress
+User completes tasks → Progress tracked and streaks updated
+Weight Distribution for AI:
+Recent journals (1-7 days): 40% importance
+User goals: 40% importance
+Medium journals (8-30 days): 15% importance
+Old journals (30+ days): 5% importance
+Dashboard Shows:
+Today's tasks (5-7 tasks)
+Daily motivational quote
+Goal progress bars
+Journal entry button (only if not written today)
+Streaks and achievements

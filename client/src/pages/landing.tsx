@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Target, Calendar, TrendingUp } from "lucide-react";
+import { BookOpen, Target, Calendar, TrendingUp, CheckCircle2, Sparkles, Clock } from "lucide-react";
 
 export default function Landing() {
   const { toast } = useToast();
@@ -95,34 +95,90 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-success-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-            Daily Growth Tracker
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Your personal development companion for continuous improvement
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+              <TrendingUp className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              Daily Growth Tracker
+            </h1>
+          </div>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Write daily journals, set goals, and let AI create personalized tasks to help you grow 1% better every day
           </p>
         </div>
         
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
+          {/* Features Section */}
+          <div>
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Daily Journaling</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Write about your thoughts, experiences, and reflections. The AI reads all your entries to understand your journey.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Smart Goal Setting</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Set goals for 1 month, 3 months, 6 months, or 1 year. Track your progress and stay motivated.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">AI-Generated Tasks</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Every midnight, AI creates 5-7 personalized tasks based on your recent journals and active goals.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Track Progress</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Complete daily tasks, maintain streaks, and watch your personal growth unfold over time.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           {/* Auth Section */}
-          <div className="order-1 lg:order-2">
-            <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur border-gray-200 dark:border-gray-700">
+          <div>
+            <Card className="max-w-md mx-auto">
               <CardHeader>
-                <CardTitle className="text-center text-gray-900 dark:text-white">
-                  Get Started
-                </CardTitle>
+                <CardTitle className="text-center">Start Your Growth Journey</CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="login" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
                     <TabsTrigger value="login">Login</TabsTrigger>
                     <TabsTrigger value="signup">Sign Up</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="login">
+                  <TabsContent value="login" className="mt-0">
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div>
                         <Label htmlFor="login-email">Email</Label>
@@ -148,7 +204,7 @@ export default function Landing() {
                       </div>
                       <Button
                         type="submit"
-                        className="w-full bg-primary-600 hover:bg-primary-700"
+                        className="w-full"
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? "Signing in..." : "Sign In"}
@@ -156,7 +212,7 @@ export default function Landing() {
                     </form>
                   </TabsContent>
                   
-                  <TabsContent value="signup">
+                  <TabsContent value="signup" className="mt-0">
                     <form onSubmit={handleSignup} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -204,7 +260,7 @@ export default function Landing() {
                       </div>
                       <Button
                         type="submit"
-                        className="w-full bg-success-600 hover:bg-success-700"
+                        className="w-full"
                         disabled={signupMutation.isPending}
                       >
                         {signupMutation.isPending ? "Creating Account..." : "Create Account"}
@@ -215,51 +271,12 @@ export default function Landing() {
               </CardContent>
             </Card>
           </div>
-          
-          {/* Features Section */}
-          <div className="order-2 lg:order-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6 text-center">
-                  <BookOpen className="w-12 h-12 text-primary-500 mx-auto mb-4" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Daily Journaling</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Reflect on your day with rich text entries and mood tracking
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6 text-center">
-                  <Target className="w-12 h-12 text-success-500 mx-auto mb-4" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Goal Tracking</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Set meaningful goals and track your progress over time
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6 text-center">
-                  <Calendar className="w-12 h-12 text-warning-500 mx-auto mb-4" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">AI-Powered Tasks</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Get personalized daily tasks based on your journals and goals
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6 text-center">
-                  <TrendingUp className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Progress Analytics</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Visualize your growth with detailed statistics and insights
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        </div>
+        
+        <div className="text-center mt-12 pt-8 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            Join thousands of people committed to daily growth and self-improvement
+          </p>
         </div>
       </div>
     </div>

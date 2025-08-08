@@ -4,8 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import Header from "@/components/Header";
-import MobileNav from "@/components/MobileNav";
+import { ArrowLeft, Home } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,8 +228,35 @@ export default function Goals() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
+    <div className="min-h-screen bg-background">
+      {/* Simple Navigation Header */}
+      <header className="border-b bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => window.location.href = '/dashboard'}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Button>
+              <h1 className="text-xl font-semibold text-foreground">Goals</h1>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/dashboard'}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
+          </div>
+        </div>
+      </header>
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
@@ -430,7 +456,6 @@ export default function Goals() {
         )}
       </div>
 
-      <MobileNav />
     </div>
   );
 }

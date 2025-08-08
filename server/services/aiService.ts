@@ -50,7 +50,7 @@ export class AIService {
           'X-Title': 'Daily Growth Tracker'
         },
         body: JSON.stringify({
-          model: 'gryphe/mythomist-7b:free',
+          model: 'openai/gpt-3.5-turbo',
           messages: [
             {
               role: 'system',
@@ -101,49 +101,69 @@ export class AIService {
   private buildPrompt(request: TaskGenerationRequest): string {
     const { recentJournals, goals } = request;
     
-    const journalSummary = recentJournals.length > 0 
-      ? recentJournals.map(j => `${j.date}: ${j.title || 'Untitled'} - ${j.content?.substring(0, 100) || 'No content'}...`).join('\n')
-      : 'No recent journal entries available.';
+    // Sort journals by date (newest first) and categorize by recency
+    const now = new Date();
+    const recentEntries = recentJournals.filter(j => {
+      const days = Math.floor((now.getTime() - new Date(j.date).getTime()) / (1000 * 60 * 60 * 24));
+      return days <= 7;
+    });
+    const mediumEntries = recentJournals.filter(j => {
+      const days = Math.floor((now.getTime() - new Date(j.date).getTime()) / (1000 * 60 * 60 * 24));
+      return days > 7 && days <= 30;
+    });
+    
+    const recentJournalSummary = recentEntries.length > 0 
+      ? recentEntries.map(j => `Date: ${j.date}\nContent: ${j.content || 'No content'}`).join('\n\n')
+      : 'No recent journal entries (last 7 days).';
+    
+    const mediumJournalSummary = mediumEntries.length > 0
+      ? mediumEntries.slice(0, 3).map(j => `${j.date}: ${(j.content || '').substring(0, 100)}...`).join('\n')
+      : 'No medium-term journal entries (8-30 days ago).';
     
     const goalsSummary = goals.length > 0
-      ? goals.map(g => `"${g.title}" - ${g.description || 'No description'} (${g.currentValue || 0}/${g.targetValue || 'unlimited'} ${g.unit || 'units'})`).join('\n')
+      ? goals.map(g => `Goal: ${g.title}\nDuration: ${g.duration || 'Not specified'}\nProgress: ${g.progress || 0}%\nDescription: ${g.description || 'No description'}`).join('\n\n')
       : 'No active goals set.';
 
     return `
-Based on the user's recent journal entries and goals, generate 5-7 personalized daily tasks that will help them grow and make progress. Also provide a motivational quote and focus area for today.
+You are a life coach. Create 5-7 tasks for tomorrow based on this information:
 
-Recent Journal Entries:
-${journalSummary}
+RECENT JOURNALS (Most Important - Last 7 days):
+${recentJournalSummary}
 
-Current Goals:
+USER GOALS:
 ${goalsSummary}
 
-Please respond with valid JSON in this exact format:
+MEDIUM TERM JOURNALS (8-30 days ago):
+${mediumJournalSummary}
+
+Rules:
+1. Create 5-7 specific tasks for tomorrow
+2. Focus mostly on recent journals (last 7 days) and user goals
+3. Each task should take 10-45 minutes
+4. Include tasks that help achieve the user's goals
+5. Make tasks actionable and specific
+
+Return JSON format:
 {
   "tasks": [
     {
-      "title": "Task title (concise and actionable)",
-      "description": "Detailed description of what to do and why",
-      "category": "Category (Productivity, Wellness, Learning, Planning, Mindfulness, etc.)",
-      "timeEstimate": 15,
-      "priority": "medium",
-      "relatedGoalId": null
+      "title": "Task title",
+      "description": "What exactly to do",
+      "category": "health|learning|productivity|wellness",
+      "timeEstimate": "20 minutes",
+      "relatedGoalId": "goalId if related to a goal",
+      "priority": "high|medium|low"
     }
   ],
-  "dailyQuote": "An inspiring and relevant motivational quote",
-  "focusArea": "A brief description of what the user should focus on today based on their journals and goals"
+  "dailyQuote": "Motivational quote for tomorrow",
+  "focusArea": "Main area to focus on tomorrow"
 }
 
-Requirements:
-- Generate 5-7 tasks total
-- Time estimates should be between 5-45 minutes
-- Mix of different categories (productivity, wellness, learning, etc.)
-- Tasks should be specific and actionable
-- Consider the user's recent journal content and active goals
-- Priority can be "low", "medium", or "high"
-- Only set relatedGoalId if a task directly relates to completing a specific goal
-- Daily quote should be motivational and relevant to personal growth
-- Focus area should be 1-2 sentences about the day's theme or priority
+Weight Distribution:
+- Recent journals (1-7 days): 40% importance
+- User goals: 40% importance  
+- Medium journals (8-30 days): 15% importance
+- Old journals (30+ days): 5% importance
 
 Make the tasks personal and relevant based on the journal entries and goals provided.
 `;
