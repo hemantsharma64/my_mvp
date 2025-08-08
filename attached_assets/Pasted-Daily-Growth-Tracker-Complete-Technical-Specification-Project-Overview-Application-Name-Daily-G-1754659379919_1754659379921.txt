@@ -1,0 +1,168 @@
+Daily Growth Tracker - Complete Technical Specification
+Project Overview
+Application Name: Daily Growth Tracker (1% App)
+Type: Full-stack journaling and personal development application
+Goal: Help users achieve continuous improvement through daily reflection and AI-powered task generation
+
+Core Features Implemented
+✅ Completed Features
+User Authentication - Replit OIDC integration
+Daily Journaling - Rich text journal entries with date-based storage
+Goal Management - Create, track, and manage personal goals
+AI Task Generation - OpenRouter/GPT-3.5 integration for personalized daily tasks
+Dashboard - Unified view of tasks, goals, stats, and daily content
+Manual Task Generation - On-demand task creation button
+Automatic Task Scheduling - Daily midnight UTC task generation
+Statistics Tracking - Journal streaks, task completion, progress metrics
+🔧 Current Status
+Application runs successfully on port 5000
+Database schema is implemented and working
+AI service is configured with OpenRouter API
+Task generation logic is enhanced with detailed logging
+Manual trigger endpoint added for testing
+Technical Architecture
+Backend Stack
+Runtime: Node.js with TypeScript
+Framework: Express.js with ES modules
+Database: PostgreSQL with Neon serverless driver
+ORM: Drizzle ORM with type-safe schemas
+Authentication: Replit OIDC + Passport.js
+Session Storage: PostgreSQL-backed sessions
+AI Integration: OpenRouter API with GPT-3.5 Turbo
+Frontend Stack
+Framework: React 18 with TypeScript
+Build Tool: Vite with hot reload
+UI Library: Shadcn/ui components + Radix UI primitives
+Styling: Tailwind CSS with dark/light theme support
+State Management: TanStack Query (React Query v5)
+Routing: Wouter for lightweight client-side routing
+Forms: React Hook Form with Zod validation
+Database Schema
+-- Users table (Replit Auth)
+users: id, email, name, avatarUrl, createdAt, updatedAt
+-- Journal entries
+journals: id, userId, date, title, content, mood, createdAt
+-- Personal goals
+goals: id, userId, title, description, duration, progress, completed, createdAt
+-- AI-generated tasks
+tasks: id, userId, date, title, description, category, timeEstimate, 
+       priority, completed, relatedGoalId, generatedAt
+-- Daily dashboard content
+dashboardContent: id, userId, date, dailyQuote, focusArea, createdAt
+-- User sessions
+sessions: sid, userId, data, expiresAt
+Key API Endpoints
+Authentication:
+- GET /api/login - Initiate OIDC login
+- GET /api/callback - Handle OIDC callback
+- GET /api/auth/user - Get current user info
+Journals:
+- POST /api/journals - Create journal entry
+- GET /api/journals - Get user's journal entries
+- GET /api/journals/:date - Get specific date journal
+- PUT /api/journals/:id - Update journal entry
+Goals:
+- POST /api/goals - Create new goal
+- GET /api/goals - Get user's goals
+- PUT /api/goals/:id - Update goal progress
+Tasks:
+- GET /api/tasks - Get user's tasks
+- PUT /api/tasks/:id - Update task (mark complete)
+- POST /api/generate-tasks - Manual task generation trigger
+Dashboard:
+- GET /api/dashboard - Get dashboard data (tasks, goals, stats, content)
+AI Integration Details
+Service: OpenRouter API (https://openrouter.ai)
+Model: GPT-3.5 Turbo
+Required Environment Variable: OPENROUTER_API_KEY
+
+Task Generation Logic:
+
+Analyzes recent journals (last 7 days) - 40% weight
+Considers user goals and progress - 40% weight
+Reviews medium-term journals (8-30 days) - 15% weight
+Samples older journal entries - 5% weight
+Generates 5-7 actionable tasks (10-45 minutes each)
+Creates daily motivational quote and focus area
+Runs automatically at midnight UTC (5:30 AM IST)
+File Structure
+project/
+├── client/src/
+│   ├── components/         # Reusable UI components
+│   ├── pages/             # Route components (Dashboard, Journal, Goals)
+│   ├── hooks/             # Custom React hooks (useAuth, useToast)
+│   ├── lib/               # Utilities (queryClient, authUtils)
+│   └── main.tsx           # App entry point
+├── server/
+│   ├── services/          # AI service, task generator
+│   ├── storage.ts         # Database operations
+│   ├── routes.ts          # API route definitions
+│   ├── replitAuth.ts      # Authentication setup
+│   └── index.ts           # Server entry point
+├── shared/
+│   └── schema.ts          # Shared TypeScript types and Zod schemas
+└── package.json           # Dependencies and scripts
+Environment Setup
+Required Environment Variables:
+
+OPENROUTER_API_KEY=sk-or-v1-... (from openrouter.ai)
+DATABASE_URL=postgresql://... (automatically provided by Replit)
+Development Commands:
+
+npm run dev          # Start development server
+npm run db:push      # Push schema changes to database
+npm run build        # Build for production
+Authentication Flow
+User clicks login → Redirects to /api/login
+Replit OIDC handles authentication
+Callback at /api/callback processes user data
+User profile stored/updated in database
+Session established with PostgreSQL storage
+Protected routes verify authentication via middleware
+Current Issues & Fixes Applied
+Issue 1: Manual task generation returning 200 but no tasks appearing
+Status: Fixed with enhanced logging and better error handling
+Solution: Added detailed console logging throughout task generation pipeline
+
+Issue 2: QueryClient import errors across frontend
+Status: Fixed
+Solution: Corrected import statements in all components
+
+Issue 3: AI API key configuration
+Status: Fixed
+Solution: Added proper environment variable handling and user guidance
+
+Deployment Requirements
+Environment: Replit with PostgreSQL database enabled
+Port: Application must bind to port 5000 (0.0.0.0:5000)
+Secrets: OPENROUTER_API_KEY must be configured in Replit Secrets
+Database: Automatic PostgreSQL database provisioning
+Build: Vite handles frontend bundling, tsx compiles backend
+Task Generation Schedule
+Automatic Generation:
+
+UTC Time: Every day at 00:00:00 UTC
+IST Time: Every day at 5:30 AM IST
+Target: Generates tasks for the current day based on previous day's journal
+Manual Generation:
+
+Endpoint: POST /api/generate-tasks
+Access: Available via "Generate New Tasks" button in dashboard
+Purpose: Testing and on-demand task creation
+Development Notes
+Database Migrations: Use npm run db:push instead of manual SQL
+Theme Support: Dark/light mode implemented with Tailwind CSS variables
+Type Safety: Full TypeScript coverage with shared schema types
+Error Handling: Comprehensive error boundaries and user feedback
+Performance: TanStack Query provides caching and optimistic updates
+Known Technical Debt
+Active Users Query: Currently gets all journal entries to find active users (inefficient for scale)
+Task Deduplication: No prevention of duplicate task generation for same date
+AI Response Parsing: Basic JSON parsing without advanced error recovery
+Session Management: Basic session configuration, could be enhanced with Redis
+Next Development Steps
+Testing: Add comprehensive unit and integration tests
+Performance: Implement database indexing and query optimization
+Features: Add task categories, time tracking, progress charts
+Mobile: Enhance mobile responsiveness and PWA capabilities
+Analytics: Add user behavior tracking and success metrics
